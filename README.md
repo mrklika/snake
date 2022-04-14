@@ -7,7 +7,28 @@ This library was generated with [Angular CLI](https://github.com/angular/angular
 ```bash
 npm i @mrklika/snake
 ```
+## Usage
+```python
+import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { SnakeModule } from '@mrklika/snake';
+import { AppComponent } from './app.component';
 
+@NgModule({
+  declarations: [ AppComponent ],
+  imports: [
+    BrowserModule,
+    SnakeModule
+  ],
+  bootstrap: [ AppComponent ]
+})
+export class AppModule { }
+```
+
+```python
+<snake></snake>
+
+```
 ## Inputs
 ```python
 @Input()
