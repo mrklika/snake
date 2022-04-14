@@ -7,6 +7,10 @@
     "name": "mrklika",
     "url": "https://github.com/mrklika"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mrklika/snake"
+  },
   "license": "MIT",
   "peerDependencies": {
     "@angular/common": "^13.3.0",
