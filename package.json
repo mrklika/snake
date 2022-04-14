@@ -1,6 +1,6 @@
 {
   "name": "@mrklika/snake",
-  "version": "0.0.2",
+  "version": "1.0.0",
   "description": "The classic snake game you know, powered by Angular.",
   "keywords": [ "snake", "angular", "game", "mrklika" ],
   "author": {
