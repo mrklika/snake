@@ -1,0 +1,12 @@
+<canvas
+  #boardRef
+  [width]="boardSize"
+  [height]="boardSize"
+  class="__canvas">
+</canvas>
+
+<div
+  *ngIf="showPoints"
+  class="__points">
+  Points: <strong>{{ points }}</strong>
+</div>

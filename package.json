@@ -1,0 +1,18 @@
+{
+  "name": "@mrklika/snake",
+  "version": "0.0.2",
+  "description": "The classic snake game you know, powered by Angular.",
+  "keywords": [ "snake", "angular", "game", "mrklika" ],
+  "author": {
+    "name": "mrklika",
+    "url": "https://github.com/mrklika"
+  },
+  "license": "MIT",
+  "peerDependencies": {
+    "@angular/common": "^13.3.0",
+    "@angular/core": "^13.3.0"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  }
+}
