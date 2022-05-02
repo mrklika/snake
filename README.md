@@ -42,7 +42,7 @@ startingPositions: Position[] = [
 boardSize = 300;
 
 @Input()
-speed = SpeedOptions.Slow;
+speedInterval = 80;
 
 @Input()
 foodColor = '#61BB45';

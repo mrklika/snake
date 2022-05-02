@@ -28,52 +28,40 @@ export enum ArrowKeys {
   ArrowLeft = 'ArrowLeft'
 }
 
-export enum SpeedOptions {
-  SuperSlow = 'SuperSlow',
-  Slow = 'Slow',
-  Fast = 'Fast',
-  SuperFast = 'SuperFast'
-}
-
 @Component({
   selector: 'snake',
   templateUrl: './snake.component.html',
   styleUrls: ['./snake.component.scss']
 })
-export class SnakeComponent implements OnInit{
+export class SnakeComponent implements OnInit {
   // # Data
 
   // -- Angular
   @ViewChild('boardRef', { static: true })
-  boardRef: ElementRef<HTMLCanvasElement>;
+  private _boardRef: ElementRef<HTMLCanvasElement>;
 
   // listen for arrow key press and change direction of the snake
   @HostListener('document:keydown', ['$event'])
   handleKeyboardEvent(event: KeyboardEvent) {
-    if (event.key !== this.direction && this._timeout !== this._cachedTimeout) {
+    if (ArrowKeys[event.key]) {
       switch (event.key) {
         case ArrowKeys.ArrowUp:
-          this.direction =
-            this.direction !== Directions.Down ? Directions.Up : this.direction;
+          this._direction = this._direction !== Directions.Down ? Directions.Up : this._direction;
           break;
         case ArrowKeys.ArrowRight:
-          this.direction =
-            this.direction !== Directions.Left
-              ? Directions.Right
-              : this.direction;
+          this._direction = this._direction !== Directions.Left
+            ? Directions.Right
+            : this._direction;
           break;
         case ArrowKeys.ArrowDown:
-          this.direction =
-            this.direction !== Directions.Up ? Directions.Down : this.direction;
+          this._direction = this._direction !== Directions.Up ? Directions.Down : this._direction;
           break;
         case ArrowKeys.ArrowLeft:
-          this.direction =
-            this.direction !== Directions.Right
-              ? Directions.Left
-              : this.direction;
+          this._direction = this._direction !== Directions.Right
+            ? Directions.Left
+            : this._direction;
           break;
       }
-      this._cachedTimeout = this._timeout;
     }
   }
 
@@ -88,7 +76,7 @@ export class SnakeComponent implements OnInit{
   boardSize = 300;
 
   @Input()
-  speed = SpeedOptions.Slow
+  speedInterval = 80;
 
   @Input()
   foodColor = '#61BB45';
@@ -106,51 +94,61 @@ export class SnakeComponent implements OnInit{
   gameStarted = new EventEmitter<boolean>();
 
   // -- sync
-  direction = Directions.Right;
-  step = 10;
   points = 0;
-  foodPosition: Position;
+  private _foodPosition: Position;
+  private _step = 10;
+  private _direction = Directions.Right;
   private _boardContext: CanvasRenderingContext2D;
-  private _timeout;
-  private _cachedTimeout: number;
-  private _snake: Position[] = [ ...this.startingPositions ];
+  private _interval;
+  private _snake: Position[];
 
   ngOnInit() {
-    this._boardContext = this.boardRef.nativeElement.getContext('2d');
-    this._generateFoodPosition();
-    this.loopGame();
-    this.gameStarted.emit(true);
+    this._boardContext = this._boardRef.nativeElement.getContext('2d');
+    this._startGame();
   }
 
-  loopGame() {
+  private _startGame() {
+    this.restartGame();
+  }
+
+  private _loopGame() {
     this._recalculateSnake();
     this._drawSnake();
-    this._drawPart(this.foodPosition, this.foodColor);
-    this._timeout = setTimeout(() => this.loopGame(), this._getSpeed(this.speed));
-  }
-
-  private _getSpeed(speedOption: SpeedOptions) {
-    switch (speedOption) {
-      case SpeedOptions.SuperSlow: return 100;
-      case SpeedOptions.Slow: return 80;
-      case SpeedOptions.Fast: return 60;
-      case SpeedOptions.SuperFast: return 40;
-      default: return 80;
-    }
+    this._drawPart(this._foodPosition, this.foodColor);
   }
 
   restartGame() {
-    this.points = 0;
-    this.pointsChanged.emit(this.points);
-    this._snake = [ ...this.startingPositions ];
-    this.direction = Directions.Right;
+    this._setSnake([ ...this.startingPositions ]);
+    this._generateFoodPosition();
+    this._changePoints(0);
+    this._changeDirection(Directions.Right);
+    this._loopGame();
+    this._setInterval();
     this.gameStarted.emit(true);
+  }
+
+  private _setInterval() {
+    clearInterval(this._interval);
+    this._interval = setInterval(() => this._loopGame(), this.speedInterval);
+  }
+
+  private _setSnake(snake: Position[]) {
+    this._snake = snake;
+  }
+
+  private _changeDirection(direction: Directions) {
+    this._direction = direction;
+  }
+
+  private _changePoints(points: number) {
+    this.points = points;
+    this.pointsChanged.emit(this.points);
   }
 
   // draw individual part
   private _drawPart(part: Position, fillColor?: string) {
     this._boardContext.fillStyle = fillColor || this.snakeColor;
-    this._boardContext.fillRect(part.x, part.y, this.step, this.step);
+    this._boardContext.fillRect(part.x, part.y, this._step, this._step);
   }
 
   // draw whole snake by given array of snake positions
@@ -175,7 +173,7 @@ export class SnakeComponent implements OnInit{
   }
 
   private _checkColision() {
-    const snake = [...this._snake];
+    const snake = [ ...this._snake ];
     const snakeHead = snake[snake.length - 1];
     snake.pop();
 
@@ -185,10 +183,9 @@ export class SnakeComponent implements OnInit{
     }
 
     // food colision
-    if (snakeHead.x === this.foodPosition.x && snakeHead.y === this.foodPosition.y) {
+    if (snakeHead.x === this._foodPosition.x && snakeHead.y === this._foodPosition.y) {
       this._generateFoodPosition();
-      this.points++;
-      this.pointsChanged.emit(this.points);
+      this._changePoints(this.points + 1);
       this._snake.unshift(this._snake[0]);
     }
 
@@ -203,15 +200,15 @@ export class SnakeComponent implements OnInit{
 
   // get new snake head position by given direction
   private _getHeadPosition(part: Position) {
-    switch (this.direction) {
+    switch (this._direction) {
       case Directions.Up:
-        return { x: part.x, y: part.y - this.step };
+        return { x: part.x, y: part.y - this._step };
       case Directions.Right:
-        return { x: part.x + this.step, y: part.y };
+        return { x: part.x + this._step, y: part.y };
       case Directions.Down:
-        return { x: part.x, y: part.y + this.step };
+        return { x: part.x, y: part.y + this._step };
       case Directions.Left:
-        return { x: part.x - this.step, y: part.y };
+        return { x: part.x - this._step, y: part.y };
     }
   }
 
@@ -221,12 +218,12 @@ export class SnakeComponent implements OnInit{
   }
 
   private _generateRandomPosition() {
-    const difference = this.boardSize - this.step;
-    const randomX = Math.ceil(Math.floor(Math.random() * difference) / this.step) * this.step;
-    const randomY = Math.ceil(Math.floor(Math.random() * difference) / this.step) * this.step;
+    const difference = this.boardSize - this._step;
+    const randomX = Math.ceil(Math.floor(Math.random() * difference) / this._step) * this._step;
+    const randomY = Math.ceil(Math.floor(Math.random() * difference) / this._step) * this._step;
     const randomPosition = {
       x: randomX,
-      y: randomY,
+      y: randomY
     };
     return randomPosition;
   }
@@ -236,7 +233,7 @@ export class SnakeComponent implements OnInit{
     while (this._snake.some((part) => part.x === randomPosition.x && part.y === randomPosition.y)) {
       randomPosition = this._generateRandomPosition();
     }
-    this.foodPosition = randomPosition;
+    this._foodPosition = randomPosition;
     return randomPosition;
   }
 
